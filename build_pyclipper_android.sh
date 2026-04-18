@@ -36,28 +36,13 @@ python3 - <<PY
 from pathlib import Path
 setup_py = Path('setup.py')
 text = setup_py.read_text()
-old = """            sources=[
-                "src/pyclipper/_pyclipper.pyx",
-                "src/clipper.cpp"],
-            language="c++",
-            include_dirs=["src"],
-            libraries=[],
-            extra_compile_args=[],
-        )"""
-new = """            sources=[
-                "src/pyclipper/_pyclipper.pyx",
-                "src/clipper.cpp"],
-            language="c++",
-            include_dirs=["src"],
-            libraries=['python3.13'],
-            library_dirs=['$ROOT/python-runtime'],
-            runtime_library_dirs=['$ROOT/python-runtime'],
-            extra_compile_args=[],
-            extra_link_args=['-L$ROOT/python-runtime'],
-        )"""
+print('SETUP_PY_HEAD')
+print(text[:3000])
+old = 'libraries=[]'
+new = "libraries=['python3.13'], library_dirs=['$ROOT/python-runtime'], runtime_library_dirs=['$ROOT/python-runtime'], extra_link_args=['-L$ROOT/python-runtime']"
 if old not in text:
-    raise SystemExit('expected Extension block not found in setup.py')
-setup_py.write_text(text.replace(old, new))
+    raise SystemExit('libraries=[] not found in setup.py')
+setup_py.write_text(text.replace(old, new, 1))
 print('PATCHED_SETUP_PY')
 PY
 python3 setup.py bdist_wheel --plat-name android_24_arm64_v8a -d "$GITHUB_WORKSPACE/dist-host"
