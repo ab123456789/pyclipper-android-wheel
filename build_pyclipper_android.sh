@@ -17,9 +17,14 @@ export RANLIB="$TOOLCHAIN/bin/llvm-ranlib"
 export STRIP="$TOOLCHAIN/bin/llvm-strip"
 export CFLAGS="-fPIC"
 export CXXFLAGS="-fPIC"
+export PYLIB="$ROOT/python-runtime/libpython3.13.so"
+export LDFLAGS="-L$(dirname \"$PYLIB\") -lpython3.13"
 cd "$ROOT"
 rm -rf pyclipper-src
-mkdir pyclipper-src
+mkdir -p pyclipper-src "$ROOT/python-runtime"
+curl -fsSL "https://github.com/ab123456789/opencv-android-headless/releases/download/python-runtime-py313-android-aarch64/libpython3.13.so" -o "$PYLIB"
+test -s "$PYLIB"
+file "$PYLIB"
 SRC=$(find "$ROOT/src" -maxdepth 1 -type f \( -name 'pyclipper*.tar.gz' -o -name 'pyclipper*.zip' \) | head -n1)
 test -n "$SRC"
 case "$SRC" in
@@ -27,6 +32,7 @@ case "$SRC" in
   *) tar -xzf "$SRC" -C pyclipper-src ;;
 esac
 cd pyclipper-src/pyclipper-*
+export LDSHARED="$CXX -shared $LDFLAGS"
 python3 setup.py bdist_wheel --plat-name android_24_arm64_v8a -d "$GITHUB_WORKSPACE/dist-host"
 mkdir -p "$GITHUB_WORKSPACE/dist" "$PWD/wheel-fix"
 WHL=$(find "$GITHUB_WORKSPACE/dist-host" -maxdepth 1 -type f -name '*android_24_arm64_v8a.whl' -print -quit)
