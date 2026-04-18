@@ -32,8 +32,8 @@ case "$SRC" in
   *) tar -xzf "$SRC" -C pyclipper-src ;;
 esac
 cd pyclipper-src/pyclipper-*
-export LDSHARED="$CXX -shared $LDFLAGS"
-python3 setup.py bdist_wheel --plat-name android_24_arm64_v8a -d "$GITHUB_WORKSPACE/dist-host"
+export LIBPYTHON_LDFLAGS="-L$ROOT/python-runtime -lpython3.13"
+python3 setup.py build_ext --plat-name android_24_arm64_v8a --libraries python3.13 --library-dirs "$ROOT/python-runtime" bdist_wheel --plat-name android_24_arm64_v8a -d "$GITHUB_WORKSPACE/dist-host"
 mkdir -p "$GITHUB_WORKSPACE/dist" "$PWD/wheel-fix"
 WHL=$(find "$GITHUB_WORKSPACE/dist-host" -maxdepth 1 -type f -name '*android_24_arm64_v8a.whl' -print -quit)
 test -n "$WHL"
