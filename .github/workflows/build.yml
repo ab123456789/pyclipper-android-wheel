@@ -1,0 +1,28 @@
+name: Build Pyclipper Android Wheel
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Set up Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27d
+          add-to-path: false
+      - name: Build Android wheel
+        env:
+          ANDROID_API: '24'
+        run: ./build_pyclipper_android.sh
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pyclipper-wheel
+          path: dist/*
+          if-no-files-found: error
