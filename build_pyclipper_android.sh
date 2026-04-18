@@ -38,10 +38,10 @@ setup_py = Path('setup.py')
 text = setup_py.read_text()
 print('SETUP_PY_HEAD')
 print(text[:3000])
-old = 'libraries=[]'
-new = "libraries=['python3.13'], library_dirs=['$ROOT/python-runtime'], runtime_library_dirs=['$ROOT/python-runtime'], extra_link_args=['-L$ROOT/python-runtime']"
+old = 'include_dirs=["src"],'
+new = 'include_dirs=["src"],\n                libraries=["python3.13"],\n                library_dirs=["$ROOT/python-runtime"],\n                runtime_library_dirs=["$ROOT/python-runtime"],\n                extra_link_args=["-L$ROOT/python-runtime"],'
 if old not in text:
-    raise SystemExit('libraries=[] not found in setup.py')
+    raise SystemExit('include_dirs=["src"], not found in setup.py')
 setup_py.write_text(text.replace(old, new, 1))
 print('PATCHED_SETUP_PY')
 PY
