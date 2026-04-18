@@ -32,8 +32,35 @@ case "$SRC" in
   *) tar -xzf "$SRC" -C pyclipper-src ;;
 esac
 cd pyclipper-src/pyclipper-*
-export LIBPYTHON_LDFLAGS="-L$ROOT/python-runtime -lpython3.13"
-python3 setup.py build_ext --plat-name android_24_arm64_v8a --libraries python3.13 --library-dirs "$ROOT/python-runtime" bdist_wheel --plat-name android_24_arm64_v8a -d "$GITHUB_WORKSPACE/dist-host"
+python3 - <<PY
+from pathlib import Path
+setup_py = Path('setup.py')
+text = setup_py.read_text()
+old = """            sources=[
+                "src/pyclipper/_pyclipper.pyx",
+                "src/clipper.cpp"],
+            language="c++",
+            include_dirs=["src"],
+            libraries=[],
+            extra_compile_args=[],
+        )"""
+new = """            sources=[
+                "src/pyclipper/_pyclipper.pyx",
+                "src/clipper.cpp"],
+            language="c++",
+            include_dirs=["src"],
+            libraries=['python3.13'],
+            library_dirs=['$ROOT/python-runtime'],
+            runtime_library_dirs=['$ROOT/python-runtime'],
+            extra_compile_args=[],
+            extra_link_args=['-L$ROOT/python-runtime'],
+        )"""
+if old not in text:
+    raise SystemExit('expected Extension block not found in setup.py')
+setup_py.write_text(text.replace(old, new))
+print('PATCHED_SETUP_PY')
+PY
+python3 setup.py bdist_wheel --plat-name android_24_arm64_v8a -d "$GITHUB_WORKSPACE/dist-host"
 mkdir -p "$GITHUB_WORKSPACE/dist" "$PWD/wheel-fix"
 WHL=$(find "$GITHUB_WORKSPACE/dist-host" -maxdepth 1 -type f -name '*android_24_arm64_v8a.whl' -print -quit)
 test -n "$WHL"
